@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# npm 오류의 99%는 여기서 해결됨
+# npm 오류 해결을 위함.
 RUN npm install --legacy-peer-deps
 
 COPY . .
