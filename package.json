@@ -1,0 +1,9 @@
+{
+  "name": "app-dev-server",
+  "version": "1.0.0",
+  "dependencies": {
+    "fastify": "^4.0.0",
+    "@google/generative-ai": "^0.3.0",
+    "dotenv": "^16.0.0"
+  }
+}
