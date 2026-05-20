@@ -163,5 +163,48 @@ Rules:
   return JSON.parse(raw.replace(/```json|```/g, '').trim());
 });
 
+// 💡 백엔드 라우터에 추가할 /expense-feedback 엔드포인트
+app.post('/expense-feedback', async (req, res) => {
+  try {
+    const { expenseData } = req.body;
+
+    if (!expenseData) {
+      return res.status(400).json({ error: "지출 데이터가 없습니다." });
+    }
+
+    // Groq API 호출 (Llama 모델 사용 가정)
+    const completion = await groq.chat.completions.create({
+      model: "llama3-8b-8192", // 또는 현재 사용 중인 모델 이름
+      messages: [
+        {
+          role: "system",
+          content: `너는 유저의 가계부를 진단하고 자산 관리를 조언해주는 냉철하고 위트 있는 금융 비서야.
+유저가 이번 달 [총 지출 및 카테고리별 요약] 데이터를 주면, 그걸 기반으로 유저의 정신을 번쩍 들게 할 '뼈 때리는 한마디'나 '현실적인 조언'을 해줘야 해.
+
+[반드시 지켜야 할 철칙]
+1. 친근하게 존댓말을 쓰되, 약간 뼈를 때리는 반전 매력이나 위트가 있어야 해.
+2. 절대로 다른 쓸데없는 말("안녕하세요", "분석 결과입니다")은 생략하고 진짜 본론만 '딱 한 줄(50자 내외)'로 출력해.
+3. 결과를 마크다운(\`\`\`)이나 JSON 구조로 감싸지 말고, 오직 순수한 문자열(Plain Text)로만 대답해.
+4. 예시: "카페에만 2만 6천 원이라니, 커피 수혈을 조금 줄이고 통장에 저축을 수혈할 때입니다."`
+        },
+        {
+          role: "user",
+          content: `내 이번 달 지출 데이터야: ${expenseData}`
+        }
+      ],
+      temperature: 0.7, // 약간의 창의력과 위트를 위한 세팅
+    });
+
+    const aiResponse = completion.choices[0].message.content.trim();
+
+    // 프론트엔드가 바로 먹을 수 있게 JSON으로 예쁘게 포장해서 반환
+    return res.json({ feedback: aiResponse });
+
+  } catch (error) {
+    console.error("지출 분석 에러:", error);
+    return res.status(500).json({ error: "AI 분석 중 오류가 발생했습니다." });
+  }
+});
+
 app.listen({ port: 3000, host: '0.0.0.0' });
 console.log('app_dev server on port 3000');
